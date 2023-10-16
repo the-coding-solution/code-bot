@@ -1,0 +1,5 @@
+# Code Bot
+
+```
+npm install
+```
