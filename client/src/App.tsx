@@ -1,7 +1,11 @@
 import React, { useEffect, useState, useContext } from "react";
 import "./styles.scss";
 import PrefrencesPopup from "./components/PrefrencesPopup";
-// import ChatWindow from './components/ChatWindow';
+import ChatBox from "./components/ChatBox"
+
+interface Message {
+  content: string
+}
 
 type PreferencesContextType = {
   skillLevel: string;
@@ -10,6 +14,8 @@ type PreferencesContextType = {
   setLanguage: React.Dispatch<React.SetStateAction<string>>;
   topic: string;
   setTopic: React.Dispatch<React.SetStateAction<string>>;
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 };
 
 const defaultPreferences: PreferencesContextType = {
@@ -19,6 +25,8 @@ const defaultPreferences: PreferencesContextType = {
   setLanguage: () => {},
   topic: "",
   setTopic: () => {},
+  messages:[],
+  setMessages: () => {}
 };
 
 const PreferencesContext =
@@ -32,16 +40,15 @@ export const usePreferences = () => {
   return context;
 };
 
-export const PreferencesProvider: React.FC = ({
-  children,
-}: {
-  children?: React.ReactNode;
-}) => {
-  const [skillLevel, setSkillLevel] = useState<string>("beginner");
+type PreferencesProviderProps = {
+  children?: React.ReactNode
+}
+
+export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({ children }) => {
+  const [skillLevel, setSkillLevel] = useState<string>("Beginner");
   const [language, setLanguage] = useState<string>("Javascript");
   const [topic, setTopic] = useState<string>("coding excersises");
-  // const [messages, setMessages] = useState
-
+  const [messages, setMessages] = useState<Message[]>([]);
   return (
     <PreferencesContext.Provider
       value={{
@@ -51,6 +58,8 @@ export const PreferencesProvider: React.FC = ({
         setLanguage,
         topic,
         setTopic,
+        messages,
+        setMessages,
       }}
     >
       {children}
@@ -59,19 +68,6 @@ export const PreferencesProvider: React.FC = ({
 };
 
 const App = (): React.JSX.Element => {
-  // initial request to fetch('/api/session')
-  // receive 'language', 'level', 'initial prompt'
-  // pass to <Preferences />
-
-  // fetch('/api/chat')
-  // receive a history of messages
-  // Prop drill to <Chatbox /> -> forEach(<Message key, id, message/>) -> {}
-
-  // define a function that updates the state for messages
-  // function that sends the POST request to the backend
-  // wait for response
-  // update the state with the new message
-
   const { setSkillLevel, setLanguage } = usePreferences();
 
   useEffect(() => {
@@ -90,27 +86,30 @@ const App = (): React.JSX.Element => {
           setLanguage(language);
           return;
         }
-      } catch (err) {}
-    };
-  });
+      } catch (err) {
 
-  // const handleClose = () => {
-  //   return null;
-  // };
-  // const handleSavePrefrences = (
-  //   skillLevel: string,
-  //   language: string,
-  //   topic: string,
-  // ) => {
-  //   setPreferences([skillLevel, language, topic]);
-  //   return;
-  // };
+      }
+      fetchData();
+    };
+  },[]);
+
   return (
-    <div>
-      <h1>The Coding Solution</h1>
-      <PrefrencesPopup />
-    </div>
+    <PreferencesProvider>
+      <div>
+        <h1>The Coding Solution</h1>
+        <PrefrencesPopup />
+        <ChatBox /> 
+      </div>
+    </PreferencesProvider>
   );
 };
+
+const AppProvider = (): React.JSX.Element => {
+  return (
+  <PreferencesProvider>
+    <App />
+  </PreferencesProvider>
+  )
+}
 
 export default App;

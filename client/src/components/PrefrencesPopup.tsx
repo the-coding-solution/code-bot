@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { usePreferences } from '../App'
-// import "../styles.scss";
+import "../styles.scss";
 
 interface Prefrences {
   skillLevel: string;
