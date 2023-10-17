@@ -23,7 +23,7 @@ app.get('/api/chat', LCController.getAllChatHistory, (req: Request, res: Respons
     return res.status(200).json(res.locals.chat);
 })
 
-app.post('/api/chat', (req: Request, res: Response) => {
+app.post('/api/chat', LCController.promptAi, (req: Request, res: Response) => {
     return res.status(201).json({response: 'AI message response'});
 })
 

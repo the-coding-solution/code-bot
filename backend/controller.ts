@@ -2,8 +2,11 @@ import {Request, Response, NextFunction} from 'express';
 import { serverError, chatHistory } from '../types';
 import  { Data }  from './model';
 import fs from 'fs';
+import util from 'util';
+const readAsync = util.promisify(fs.readFile);
+import path from 'path';
 interface ILCController{
-    checkSetCookie: (req: Request, res: Response, next: NextFunction) => Promise<void>
+    // checkSetCookie: (req: Request, res: Response, next: NextFunction) => Promise<void>
     getAllChatHistory: (req: Request, res: Response, next: NextFunction) => Promise<void>
     promptAi: (req: Request, res: Response, next: NextFunction) => Promise<void> 
 }
@@ -17,11 +20,10 @@ LCController.getAllChatHistory = async(req: Request, res: Response, next: NextFu
         res.locals.chat = {};
         const {session} = req.cookies;
         if (!session) return next();
+
         const info = await Data.findOne({_id: session});
         if (!info) return next();
-        
-        
-        const history = JSON.parse(fs.readFileSync(info.path_to_history, 'utf-8'));
+        const history = JSON.parse(await readAsync(path.join(__dirname, info.path_to_history), 'utf-8'));
         
         const data: chatHistory = {
             language: info.language,
@@ -54,16 +56,17 @@ LCController.getAllChatHistory = async(req: Request, res: Response, next: NextFu
 
 LCController.promptAi = async(req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const { session } = req.cookies();
+        const { session } = req.cookies;
         let language;
         let skillLevel;
         let prompt;
-        let history;
+        let history = [];
         prompt = req.body.prompt;
         if (prompt===undefined){
             return next({message: {err: 'Missing prompt'}, statusCode: 400});
         }
         if (session!=undefined){
+            console.log(`Finding session: ${session}`)
             const result = await Data.findOne({_id: session});
             if (result){
                 language = result.language;
@@ -81,11 +84,18 @@ LCController.promptAi = async(req: Request, res: Response, next: NextFunction): 
                 return next({message: {err: 'Missing data for skill level andn language'}, statusCode: 400});
             }
             const newEntry = await Data.create({language, skillLevel})//Data(language, skillLevel)
-            // res.cookie('session', newEntry._id);
+            res.cookie('session', newEntry._id);
         }
-        
+        console.log(`AI Prompt: ${language}, ${skillLevel}, ${history}, ${prompt}`);
+        return next();
     } catch (error) {
-        
+        const errObj: serverError = {
+            log: JSON.stringify({"LCController.getAllChatHistory Error": error}),
+            statusCode: 500,
+            message: { err: 'Error occured checking cookie' }
+        }
+
+        return next(errObj);
     }
 }
 export default LCController;

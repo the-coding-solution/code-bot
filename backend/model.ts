@@ -35,7 +35,7 @@ DataSchema.pre('save', async function(next){
     try {
         // @ts-ignore
         const filePath = path.join(__dirname, `./history/${this._id}.json`);
-        await writeAsync(filePath, JSON.stringify({}), 'utf-8');
+        await writeAsync(filePath, JSON.stringify([]), 'utf-8');
         return next();
     } catch (error) {
         // @ts-ignore
