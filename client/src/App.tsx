@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useContext } from "react";
-import "./styles.scss";
-import PrefrencesPopup from "./components/PrefrencesPopup";
-import ChatBox from "./components/ChatBox"
+import React, { useEffect, useState, useContext } from 'react';
+import './styles.scss';
+import PrefrencesPopup from './components/PrefrencesPopup';
+import ChatBox from './components/ChatBox';
 
 interface Message {
-  content: string
+  content: string;
 }
 
 type PreferencesContextType = {
@@ -19,14 +19,14 @@ type PreferencesContextType = {
 };
 
 const defaultPreferences: PreferencesContextType = {
-  skillLevel: "beginner",
+  skillLevel: 'beginner',
   setSkillLevel: () => {},
-  language: "JavaScript",
+  language: 'JavaScript',
   setLanguage: () => {},
-  topic: "",
+  topic: '',
   setTopic: () => {},
-  messages:[],
-  setMessages: () => {}
+  messages: [],
+  setMessages: () => {},
 };
 
 const PreferencesContext =
@@ -35,19 +35,21 @@ const PreferencesContext =
 export const usePreferences = () => {
   const context = useContext(PreferencesContext);
   if (!context) {
-    throw new Error("Preferences must be set");
+    throw new Error('Preferences must be set');
   }
   return context;
 };
 
 type PreferencesProviderProps = {
-  children?: React.ReactNode
-}
+  children?: React.ReactNode;
+};
 
-export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({ children }) => {
-  const [skillLevel, setSkillLevel] = useState<string>("Beginner");
-  const [language, setLanguage] = useState<string>("Javascript");
-  const [topic, setTopic] = useState<string>("coding excersises");
+export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({
+  children,
+}) => {
+  const [skillLevel, setSkillLevel] = useState<string>('Beginner');
+  const [language, setLanguage] = useState<string>('Javascript');
+  const [topic, setTopic] = useState<string>('coding excersises');
   const [messages, setMessages] = useState<Message[]>([]);
   return (
     <PreferencesContext.Provider
@@ -60,8 +62,7 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({ childr
         setTopic,
         messages,
         setMessages,
-      }}
-    >
+      }}>
       {children}
     </PreferencesContext.Provider>
   );
@@ -73,9 +74,9 @@ const App = (): React.JSX.Element => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/chat");
+        const response = await fetch('/api/chat');
         if (!response.ok) {
-          throw new Error("Network response not ok");
+          throw new Error('Network response not ok');
         }
         const data = await response.json();
         if (Object.keys(data).length === 0) {
@@ -86,19 +87,17 @@ const App = (): React.JSX.Element => {
           setLanguage(language);
           return;
         }
-      } catch (err) {
-
-      }
+      } catch (err) {}
       fetchData();
     };
-  },[]);
+  }, []);
 
   return (
     <PreferencesProvider>
       <div>
         <h1>The Coding Solution</h1>
         <PrefrencesPopup />
-        <ChatBox /> 
+        <ChatBox />
       </div>
     </PreferencesProvider>
   );
@@ -106,10 +105,10 @@ const App = (): React.JSX.Element => {
 
 const AppProvider = (): React.JSX.Element => {
   return (
-  <PreferencesProvider>
-    <App />
-  </PreferencesProvider>
-  )
-}
+    <PreferencesProvider>
+      <App />
+    </PreferencesProvider>
+  );
+};
 
 export default App;
