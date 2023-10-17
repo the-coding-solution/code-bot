@@ -1,17 +1,18 @@
 {
-    "compilerOptions": {
-      "outDir": "./dist/",
-      "sourceMap": true,
-      "strict": true,
-      "moduleResolution": "node",
-      "esModuleInterop": true,
-      "target": "es6",
-      "jsx": "react",
-      "module": "commonjs"
-    },
-    "include": [
-      "backend/**/*.ts",
-      "client/**/*.tsx"
-    ]
-  }
-  
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "sourceMap": true,
+    "strict": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "target": "es6",
+    "jsx": "react",
+    "module": "commonjs"
+  },
+  "include": [
+    "backend/**/*.ts",
+    "client/**/*.tsx",
+    "client/src/App.tsx",
+    "client/index.tsx"
+  ]
+}
