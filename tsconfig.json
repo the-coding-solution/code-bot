@@ -12,7 +12,7 @@
   "include": [
     "backend/**/*.ts",
     "client/**/*.tsx",
-    "client/src/App.tsx",
-    "client/index.tsx"
-  ]
+  ],
+  "exclude": ["node_modules"],
+  "types": ["react","node"]
 }
