@@ -89,66 +89,66 @@ LCController.promptAiWrapped = () => {
             let language, skillLevel, prompt;
             prompt = req.body.prompt;
             let bot;
-            res.locals.response = {
-                type: 'ai',
-                content: "test response"
-            };
-            return next();
-
-            // if (prompt===undefined){
-            //     console.log('No Prompt found...')
-            //     return next({message: {err: 'Missing prompt'}, statusCode: 400});
-            // }
-            // if (session===undefined){
-            //     skillLevel = req.body.skillLevel;
-            //     language = req.body.skillLevel;
-            //     if (skillLevel===undefined || language===undefined){
-            //         return next({message: {err: 'Missing data for skill level and language'}, statusCode: 400});
-            //     }
-            //     const newEntry = await Data.create({language, skillLevel})//Data(language, skillLevel)
-            //     console.log('Creating cookie...');
-            //     session = newEntry._id.toString();
-            //     res.cookie('session', newEntry._id);
-            //     bot = new Bot(language, skillLevel, newEntry._id.toString());
-            // }
-            // if (session!=undefined){
-            //     // First check cache
-            //     console.log('Checking cache...')
-            //     bot = checkCache(session, cache);
-            // }
-
-            // const result = await Data.findOne({_id: session});
-            // if (result){
-            //     language = result.language;
-            //     skillLevel = result.skillLevel;
-            // }
-            // console.log('stats', language, skillLevel);
-
-            // if (!result){
-            //     return next({message: {err: 'Error getting session data', statusCode: 500, log: `LCController.promptAi: Could get session ${session}`}})
-            // }
-           
-
-            // if (!bot){
-            //     // Load bot from history;
-            //     console.log('No Bot in cache, creating from memory...')
-            //     bot = new Bot(language, skillLevel, session);
-            //     cache[`key_${session}`] = bot;
-            //     console.log('Created bot')
-            //     bot.loadMemoryFromHistory(result.path_to_history);
-            // }
-
-            // // Actually call bot here
-            // const aiMessage = await bot.callAI(prompt);
-            // await bot.writeHistoryToFile(result.path_to_history);
-            // console.log('Message:', aiMessage);
-
             // res.locals.response = {
             //     type: 'ai',
-            //     content: aiMessage
-            // }
-            // console.log('AI response', aiMessage)
+            //     content: "test response"
+            // };
             // return next();
+
+            if (prompt===undefined){
+                console.log('No Prompt found...')
+                return next({message: {err: 'Missing prompt'}, statusCode: 400});
+            }
+            if (session===undefined){
+                skillLevel = req.body.skillLevel;
+                language = req.body.skillLevel;
+                if (skillLevel===undefined || language===undefined){
+                    return next({message: {err: 'Missing data for skill level and language'}, statusCode: 400});
+                }
+                const newEntry = await Data.create({language, skillLevel})//Data(language, skillLevel)
+                console.log('Creating cookie...');
+                session = newEntry._id.toString();
+                res.cookie('session', newEntry._id);
+                bot = new Bot(language, skillLevel, newEntry._id.toString());
+            }
+            if (session!=undefined){
+                // First check cache
+                console.log('Checking cache...')
+                bot = checkCache(session, cache);
+            }
+
+            const result = await Data.findOne({_id: session});
+            if (result){
+                language = result.language;
+                skillLevel = result.skillLevel;
+            }
+            console.log('stats', language, skillLevel);
+
+            if (!result){
+                return next({message: {err: 'Error getting session data', statusCode: 500, log: `LCController.promptAi: Could get session ${session}`}})
+            }
+           
+
+            if (!bot){
+                // Load bot from history;
+                console.log('No Bot in cache, creating from memory...')
+                bot = new Bot(language, skillLevel, session);
+                cache[`key_${session}`] = bot;
+                console.log('Created bot')
+                bot.loadMemoryFromHistory(result.path_to_history);
+            }
+
+            // Actually call bot here
+            const aiMessage = await bot.callAI(prompt);
+            await bot.writeHistoryToFile(result.path_to_history);
+            console.log('Message:', aiMessage);
+
+            res.locals.response = {
+                type: 'ai',
+                content: aiMessage
+            }
+            console.log('AI response', aiMessage)
+            return next();
         } catch (error) {
             const errObj: serverError = {
                 log: JSON.stringify({"LCController.getAllChatHistory Error": error}),
