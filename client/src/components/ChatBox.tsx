@@ -30,14 +30,14 @@ const ChatBox = (): React.JSX.Element => {
       if (!response.ok) throw new Error('Message Failed');
       const data = await response.json();
       setMessages(prevMessages => [...prevMessages, ...data]);
-      setInput('');
-      inputRef.current?.focus();
+      // inputRef.current?.focus();
       return;
     } catch (err) {}
   };
 
   const handleInputKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
+      setInput('');
       handleSubmit();
     }
   };
@@ -65,7 +65,9 @@ const ChatBox = (): React.JSX.Element => {
           ref={inputRef}
         />
         <button
-          onClick={handleSubmit}
+          onClick={() => {
+            setInput('');
+            handleSubmit()}}
           style={{
             backgroundColor: 'grey',
             color: 'white',
