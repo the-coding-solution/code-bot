@@ -13,18 +13,16 @@ if (process.env.NODE_ENV==='production'){
     app.use(express.static('../dist'));
 }
 
-app.get('/', (req: Request, res: Response)=>{
-    return res.status(200).json({message: "Hello from the backend"});
-})
-
-app.get('/api/session')
 
 app.get('/api/chat', LCController.getAllChatHistory, (req: Request, res: Response) => {
     return res.status(200).json(res.locals.chat);
 })
 
-app.post('/api/chat', LCController.promptAi, (req: Request, res: Response) => {
-    return res.status(201).json({response: 'AI message response'});
+const promptAi = LCController.promptAiWrapped();
+
+// @ts-ignore
+app.post('/api/chat', promptAi, (req: Request, res: Response) => {
+    return res.status(201).json(res.locals.response);
 })
 
 app.use(
