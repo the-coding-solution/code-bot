@@ -38,13 +38,13 @@ const PrefrencesPopup: React.FC = () => {
         </select>
       </label>
       <label>
-        Topic:
-        <input
+        {/* Topic: */}
+        {/* <input
           type='text'
           value={topic}
           onChange={e => setTopic(e.target.value)}
           style={{ width: '95%' }}
-        />
+        /> */}
       </label>
       {/* <button onClick={handleSave}>Save</button> */}
     </div>

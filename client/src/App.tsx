@@ -97,11 +97,23 @@ const App = (): React.JSX.Element => {
 
   return (
     <PreferencesProvider>
-      <div>
-        <h1>The Coding Solution</h1>
+      <div id='app-container'>
+        <div id='header'>
+          <h1>The Coding Solution</h1>
+        </div>
         <PrefrencesPopup />
-        <ChatBox />
-        <CodeMirror height='200px' theme={vscodeDark} />
+        <div id='interaction'>
+          <div id='chatbox'>
+            <ChatBox />
+          </div>
+          <div className='code-editor'>
+            <CodeMirror
+              className='code-mirror'
+              height='950px'
+              theme={vscodeDark}
+            />
+          </div>
+        </div>
       </div>
     </PreferencesProvider>
   );
