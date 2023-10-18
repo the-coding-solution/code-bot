@@ -12,6 +12,8 @@
   "license": "ISC",
   "dependencies": {
     "@swc/register": "^0.1.10",
+    "@uiw/codemirror-theme-vscode": "^4.21.20",
+    "@uiw/react-codemirror": "^4.21.20",
     "@types/dotenv": "^8.2.0",
     "babel": "^6.23.0",
     "babel-cli": "^6.26.0",

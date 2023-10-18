@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { usePreferences } from 
+import { usePreferences } from '../App';
 import '../styles.scss';
 
 interface Prefrences {
@@ -9,24 +9,13 @@ interface Prefrences {
 }
 
 interface PrefrencesPopupProps {
-  skillLevel: string;
-  language: string;
   onSavePrefrences: (skill: string, langauge: string, context: string) => void;
   onClose: () => void;
 }
 
-const PrefrencesPopup: React.FC<PrefrencesPopupProps> = ({
-  onSavePrefrences,
-  onClose,
-}) => {
-  const { skillLevel, setSkillLevel, langauge, setLanguage } = usePreferences();
-  const handleSave = () => {
-    onSavePrefrences(skillLevel, language, topic);
-    onClose();
-
-
-    
-  };
+const PrefrencesPopup: React.FC = () => {
+  const { skillLevel, setSkillLevel, language, setLanguage, topic, setTopic } =
+    usePreferences();
 
   return (
     <div className='prefrences-popup'>
@@ -49,14 +38,15 @@ const PrefrencesPopup: React.FC<PrefrencesPopupProps> = ({
         </select>
       </label>
       <label>
-        Topic:
-        <input
+        {/* Topic: */}
+        {/* <input
           type='text'
           value={topic}
           onChange={e => setTopic(e.target.value)}
-        />
+          style={{ width: '95%' }}
+        /> */}
       </label>
-      <button onClick={handleSave}>Save</button>
+      {/* <button onClick={handleSave}>Save</button> */}
     </div>
   );
 };

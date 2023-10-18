@@ -1,8 +1,14 @@
 import React, { useEffect, useState, useContext } from 'react';
-import Chatbot from 'react-chatbot-kit';
-import './styles.scss';
+import CodeMirror from '@uiw/react-codemirror';
+import { vscodeDark } from '@uiw/codemirror-theme-vscode';
+
 import PrefrencesPopup from './components/PrefrencesPopup';
-// import ChatWindow from './components/ChatWindow';
+import ChatBox from './components/ChatBox';
+import './styles.scss';
+
+interface Message {
+  content: string;
+}
 
 type PreferencesContextType = {
   skillLevel: string;
@@ -11,6 +17,8 @@ type PreferencesContextType = {
   setLanguage: React.Dispatch<React.SetStateAction<string>>;
   topic: string;
   setTopic: React.Dispatch<React.SetStateAction<string>>;
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 };
 
 const defaultPreferences: PreferencesContextType = {
@@ -20,18 +28,32 @@ const defaultPreferences: PreferencesContextType = {
   setLanguage: () => {},
   topic: '',
   setTopic: () => {},
+  messages: [],
+  setMessages: () => {},
 };
 
 const PreferencesContext =
   React.createContext<PreferencesContextType>(defaultPreferences);
 
-export const PreferencesProvider: React.FC<{ children: React.ReactNode }> = ({
+export const usePreferences = () => {
+  const context = useContext(PreferencesContext);
+  if (!context) {
+    throw new Error('Preferences must be set');
+  }
+  return context;
+};
+
+type PreferencesProviderProps = {
+  children?: React.ReactNode;
+};
+
+export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({
   children,
 }) => {
-  const [skillLevel, setSkillLevel] = useState<string>('beginner');
+  const [skillLevel, setSkillLevel] = useState<string>('Beginner');
   const [language, setLanguage] = useState<string>('Javascript');
   const [topic, setTopic] = useState<string>('coding excersises');
-
+  const [messages, setMessages] = useState<Message[]>([]);
   return (
     <PreferencesContext.Provider
       value={{
@@ -41,6 +63,8 @@ export const PreferencesProvider: React.FC<{ children: React.ReactNode }> = ({
         setLanguage,
         topic,
         setTopic,
+        messages,
+        setMessages,
       }}>
       {children}
     </PreferencesContext.Provider>
@@ -48,18 +72,7 @@ export const PreferencesProvider: React.FC<{ children: React.ReactNode }> = ({
 };
 
 const App = (): React.JSX.Element => {
-  // initial request to fetch('/api/session')
-  // receive 'language', 'level', 'initial prompt'
-  // pass to <Preferences />
-
-  // fetch('/api/chat')
-  // receive a history of messages
-  // Prop drill to <Chatbox /> -> forEach(<Message key, id, message/>) -> {}
-
-  // define a function that updates the state for messages
-  // function that sends the POST request to the backend
-  // wait for response
-  // update the state with the new message
+  const { setSkillLevel, setLanguage } = usePreferences();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,36 +91,31 @@ const App = (): React.JSX.Element => {
           return;
         }
       } catch (err) {}
+      fetchData();
     };
-  });
+  }, []);
 
-  const [preferences, setPreferences] = useState<(string | null)[]>([
-    skillLevel,
-    null,
-    null,
-  ]);
-
-  const handleClose = () => {
-    return null;
-  };
-  const handleSavePrefrences = (
-    skillLevel: string,
-    language: string,
-    topic: string,
-  ) => {
-    setPreferences([skillLevel, language, topic]);
-    return;
-  };
   return (
-    <div>
-      <h1>The Coding Solution</h1>
-      <PrefrencesPopup
-        onClose={handleClose}
-        onSavePrefrences={handleSavePrefrences}
-        skillLevel={skillLevel}
-        language={language}
-      />
-    </div>
+    <PreferencesProvider>
+      <div id='app-container'>
+        <div id='header'>
+          <h1>The Coding Solution</h1>
+        </div>
+        <PrefrencesPopup />
+        <div id='interaction'>
+          <div id='chatbox'>
+            <ChatBox />
+          </div>
+          <div className='code-editor'>
+            <CodeMirror
+              className='code-mirror'
+              height='950px'
+              theme={vscodeDark}
+            />
+          </div>
+        </div>
+      </div>
+    </PreferencesProvider>
   );
 };
 
