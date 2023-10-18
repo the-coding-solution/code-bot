@@ -20,7 +20,8 @@ const PrefrencesPopup: React.FC = () => {
   return (
     <div className='prefrences-popup'>
       <h2>Set Your Prefrences</h2>
-      <label>
+      <div className='preferences-settings'>
+          <label>
         Skill Level:
         <select
           value={skillLevel}
@@ -46,6 +47,7 @@ const PrefrencesPopup: React.FC = () => {
           style={{ width: '95%' }}
         /> */}
       </label>
+      </div>
       {/* <button onClick={handleSave}>Save</button> */}
     </div>
   );
