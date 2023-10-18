@@ -5,6 +5,7 @@ import { vscodeDark } from "@uiw/codemirror-theme-vscode";
 import PrefrencesPopup from "./components/PrefrencesPopup";
 import ChatBox from "./components/ChatBox";
 import "./styles.scss";
+import { chatHistory, chatHistoryJSON } from "../../types";
 
 interface Message {
   content: string;
@@ -22,7 +23,7 @@ type PreferencesContextType = {
 };
 
 const defaultPreferences: PreferencesContextType = {
-  skillLevel: "beginner",
+  skillLevel: "Beginner",
   setSkillLevel: () => {},
   language: "JavaScript",
   setLanguage: () => {},
@@ -73,28 +74,6 @@ export const PreferencesProvider: React.FC<PreferencesProviderProps> = ({
 };
 
 const App = (): React.JSX.Element => {
-  const { setSkillLevel, setLanguage } = usePreferences();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch("/api/chat");
-        if (!response.ok) {
-          throw new Error("Network response not ok");
-        }
-        const data = await response.json();
-        if (Object.keys(data).length === 0) {
-          return;
-        } else {
-          const { language, skillLevel, history } = data;
-          setSkillLevel(skillLevel);
-          setLanguage(language);
-          return;
-        }
-      } catch (err) {}
-      fetchData();
-    };
-  }, []);
 
   return (
     <PreferencesProvider>

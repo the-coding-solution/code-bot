@@ -5,6 +5,7 @@ import {serverError} from '../types'
 import LCController from './controller'
 import util from 'util';
 import { exec } from 'child_process';
+import path from 'path'
 const execAsync = util.promisify(exec);
 
 const app = express();
@@ -37,7 +38,7 @@ function quickProcess(str: string): string{
 app.post('/api/sketchbot', async(req, res, next) => {
     try {
         const {prompt} = req.body;
-        const {stdout, stderr} = await execAsync(`./work_around.sh ${prompt}`);
+        const {stdout, stderr} = await execAsync(`${path.join(__dirname, './work_around.sh')} ${prompt}`);
         const data = {
             type: 'ai',
             content: quickProcess(stdout)
@@ -50,6 +51,7 @@ app.post('/api/sketchbot', async(req, res, next) => {
 
 app.use(
     (err: any, req: Request, res: Response, next: NextFunction) => {
+        console.log(err);
         const defaultErr: serverError = {
             log: "Express error handler caught unknown middleware error",
             statusCode: 500,
