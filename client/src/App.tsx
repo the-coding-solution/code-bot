@@ -1,7 +1,10 @@
 import React, { useEffect, useState, useContext } from 'react';
-import './styles.scss';
+import CodeMirror from '@uiw/react-codemirror';
+import { vscodeDark } from '@uiw/codemirror-theme-vscode';
+
 import PrefrencesPopup from './components/PrefrencesPopup';
 import ChatBox from './components/ChatBox';
+import './styles.scss';
 
 interface Message {
   content: string;
@@ -98,15 +101,8 @@ const App = (): React.JSX.Element => {
         <h1>The Coding Solution</h1>
         <PrefrencesPopup />
         <ChatBox />
+        <CodeMirror height='200px' theme={vscodeDark} />
       </div>
-    </PreferencesProvider>
-  );
-};
-
-const AppProvider = (): React.JSX.Element => {
-  return (
-    <PreferencesProvider>
-      <App />
     </PreferencesProvider>
   );
 };
