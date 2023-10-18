@@ -3,9 +3,9 @@ import { serverError, chatHistory, chatMemory, chatHistoryJSON } from '../types'
 import  { Data }  from './model';
 import fs from 'fs';
 import util from 'util';
-import { exec } from 'child_process'
+
 const readAsync = util.promisify(fs.readFile);
-const execAsync = util.promisify(exec);
+
 import path from 'path';
 import { Bot } from './langchainAPI';
 interface ILCController{
@@ -65,10 +65,7 @@ LCController.getAllChatHistory = async(req: Request, res: Response, next: NextFu
 }
 
 
-function quickProcess(str: string): string{
-    const arr: string[] = str.split('file an issue.\n\n');
-    return arr[arr.length-1];
-}
+
 
 function checkCache(session_id: string, cache: {[key: string]: Bot}): Bot | undefined {
     if (`key_${session_id}` in cache){
