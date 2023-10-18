@@ -15,37 +15,10 @@ import { chatHistoryJSON, chatMemory } from "../types";
 const writeAsync = util.promisify(fs.writeFile);
 const readAsync = util.promisify(fs.readFile);
 dotenv.config({path: path.join(__dirname, '../.env')});
-// const llm = new OpenAI({
-//     openAIApiKey: process.env.API_KEY
-// })
-// const llm = new OpenAI({})
+
 const TEMPLATE = "You are a very knowledgeable assistant who is going to assist a user trying to learn {programming_language} at a {user_level} level."// Please start by providing the user with options of where to beging his or her journey.";
 const HUMANTEMPLATE = "{text}";
 
-const pastMessages = [new HumanMessage("My Name's Jim"), new AIMessage("Nice to meet you jim")];
-
-
-
-
-// console.log(memory.chatHistory.getMessages());
-// console.log('Message', pastMessages[1].toDict());
-// Parse json to chat history
-// parse chat history to json
-
-// {
-//     'key_${session_id}': new bot;
-// }
-
-// [
-//     {
-//         type: 'HumanMessage',
-//         content: 'message'
-//     },
-//     {
-//         type: 'AI Message',
-//         content: 'response'
-//     }
-// ]
 
 export const parseJSONtoChatHistory = (json: chatHistoryJSON[]): ChatMessageHistory => {
     const messages: any = [];
@@ -74,9 +47,6 @@ export const parseChatHistoryToJSON = async (chatHistory: BaseChatMessageHistory
     })
     return output;
 }
-// const chain = new ConversationChain({llm: llm, memory: memory})
-
-// const res1 = await chain.call({input: "Hi! I'm Jim."});
 
 export class Bot{
     // private llm;
@@ -183,84 +153,3 @@ export class Bot{
     }
 
 }
-if (process.env.API_KEY){
-    //const botTest = new Bot(process.env.API_KEY);
-    //botTest.callAI('javascript', 'beginner', 'could you show me how to use bind?');
-    async function test(){
-        const model = new ChatOpenAI({openAIApiKey: process.env.API_KEY});
-        const chatPrompt = ChatPromptTemplate.fromMessages([
-            ["system", TEMPLATE],
-            ["human", HUMANTEMPLATE],
-            new MessagesPlaceholder("history"),
-        ]);
-
-        const memory = new BufferMemory({
-            chatHistory: new ChatMessageHistory(pastMessages),
-            memoryKey: "history" 
-        })
-
-    //   const formattedChatPrompt = await chatPrompt.formatMessages();
-    //   const chain = chatPrompt.pipe(model);
-      const chain = new ConversationChain({
-        memory: memory,
-        prompt: chatPrompt,
-        llm: model,
-      }) 
-
-      const result1 = await chain.invoke({
-        programming_language: "javascript",
-        user_level: "beginner",
-        text: "Create a function with a basic for loop named whosThatPokemon",
-      })
-
-      console.log(result1);
-
-      const result2 = await chain.invoke({
-        programming_language: "javascript",
-        user_level: "beginner",
-        text: "What is the name of the previous function?",
-      })
-
-      console.log({result2});
-
-    }
-
-    // test();
-
-    // const chain = new ConversationChain({ llm: model, memory: memory })
-
-    //const res1 = await chain.call({input: "Hi I'm Jim."});
-
-    //console.log({res1});
-
-
-    
-}
-// async function test2(){
-//     if (!process.env.API_KEY){
-//         const bot = await new Bot('test');
-//         //await bot.callAI('javascript', 'beginner', 'show me how to write a function named \'HelloWorld\' that prints hello world when invoked')
-//         await bot.loadMemoryFromHistory(path.join(__dirname, './history/652fdb825ca966b8e8032678.json'));
-//         // await bot.callAI('javascript', 'beginner', 'What was the name of the function I just asked about?');
-//         await bot.writeHistoryToFile(path.join(__dirname, './history/test.json'));
-//     }
-
-// }
-
-//test2()
-/** 
-[
-    {
-        input: {
-            programming_language:
-            user_level:
-            text:
-        }
-        output: {output:'response'}    
-        
-    }
-]
-
-saveContext(element.input, element.output)
-
-*/
