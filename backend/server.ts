@@ -3,6 +3,11 @@ import cookieParser from 'cookie-parser'
 import process from 'process'
 import {serverError} from '../types'
 import LCController from './controller'
+import util from 'util';
+import { exec } from 'child_process';
+import path from 'path'
+const execAsync = util.promisify(exec);
+
 const app = express();
 app.use(cookieParser());
 app.use(express.json());
@@ -25,8 +30,28 @@ app.post('/api/chat', promptAi, (req: Request, res: Response) => {
     return res.status(201).json(res.locals.response);
 })
 
+function quickProcess(str: string): string{
+    const arr: string[] = str.split('file an issue.\n\n');
+    return arr[arr.length-1];
+}
+
+app.post('/api/sketchbot', async(req, res, next) => {
+    try {
+        const {prompt} = req.body;
+        const {stdout, stderr} = await execAsync(`${path.join(__dirname, './work_around.sh')} ${prompt}`);
+        const data = {
+            type: 'ai',
+            content: quickProcess(stdout)
+        }
+        return res.status(201).json(data);
+    } catch (error) {
+        return next(error)
+    }
+})
+
 app.use(
     (err: any, req: Request, res: Response, next: NextFunction) => {
+        console.log(err);
         const defaultErr: serverError = {
             log: "Express error handler caught unknown middleware error",
             statusCode: 500,

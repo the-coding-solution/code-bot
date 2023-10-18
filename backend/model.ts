@@ -1,10 +1,11 @@
 import { NextFunction } from 'express';
 import mongoose from 'mongoose'
-import process from 'process'
 import path from 'path';
 import fs from 'fs';
 import util from 'util';
 const writeAsync = util.promisify(fs.writeFile);
+import dotenv from 'dotenv';
+dotenv.config({ path: path.join(__dirname, '../.env')});
 let MONGO_URI = "mongodb://127.0.0.1:27017/";
 
 if (process.env.MONGO_URI){

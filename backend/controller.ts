@@ -3,9 +3,9 @@ import { serverError, chatHistory, chatMemory, chatHistoryJSON } from '../types'
 import  { Data }  from './model';
 import fs from 'fs';
 import util from 'util';
-import { exec } from 'child_process'
+
 const readAsync = util.promisify(fs.readFile);
-const execAsync = util.promisify(exec);
+
 import path from 'path';
 import { Bot } from './langchainAPI';
 interface ILCController{
@@ -39,12 +39,13 @@ LCController.getAllChatHistory = async(req: Request, res: Response, next: NextFu
         // Check if there is a header, if so send back the language context and initial context
         res.locals.chat = {};
         const {session} = req.cookies;
+        console.log(session);
         if (!session) return next();
 
         const info = await Data.findOne({_id: session});
         if (!info) return next();
         const history = JSON.parse(await readAsync(path.join(__dirname, info.path_to_history), 'utf-8'));
-        
+        // console.log(history)
         const data: chatHistory = {
             language: info.language,
             skillLevel: info.skillLevel,
@@ -65,10 +66,7 @@ LCController.getAllChatHistory = async(req: Request, res: Response, next: NextFu
 }
 
 
-function quickProcess(str: string): string{
-    const arr: string[] = str.split('file an issue.\n\n');
-    return arr[arr.length-1];
-}
+
 
 function checkCache(session_id: string, cache: {[key: string]: Bot}): Bot | undefined {
     if (`key_${session_id}` in cache){
@@ -91,6 +89,12 @@ LCController.promptAiWrapped = () => {
             let language, skillLevel, prompt;
             prompt = req.body.prompt;
             let bot;
+            // res.locals.response = {
+            //     type: 'ai',
+            //     content: "test response"
+            // };
+            // return next();
+
             if (prompt===undefined){
                 console.log('No Prompt found...')
                 return next({message: {err: 'Missing prompt'}, statusCode: 400});
@@ -114,14 +118,22 @@ LCController.promptAiWrapped = () => {
             }
 
             const result = await Data.findOne({_id: session});
+            if (result){
+                language = result.language;
+                skillLevel = result.skillLevel;
+            }
+            console.log('stats', language, skillLevel);
+
             if (!result){
                 return next({message: {err: 'Error getting session data', statusCode: 500, log: `LCController.promptAi: Could get session ${session}`}})
             }
+           
 
             if (!bot){
                 // Load bot from history;
                 console.log('No Bot in cache, creating from memory...')
-                bot = new Bot(result.language, result.skillLevel, session);
+                bot = new Bot(language, skillLevel, session);
+                cache[`key_${session}`] = bot;
                 console.log('Created bot')
                 bot.loadMemoryFromHistory(result.path_to_history);
             }
@@ -135,7 +147,7 @@ LCController.promptAiWrapped = () => {
                 type: 'ai',
                 content: aiMessage
             }
-              
+            console.log('AI response', aiMessage)
             return next();
         } catch (error) {
             const errObj: serverError = {

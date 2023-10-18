@@ -1,10 +1,40 @@
 import React, { useEffect, useState, useContext, useRef } from 'react';
 import { usePreferences } from '../App';
+import { chatHistoryJSON, chatHistory } from '../../../types';
 
 const ChatBox = (): React.JSX.Element => {
-  const { skillLevel, language, messages, setMessages } = usePreferences();
+  const { skillLevel,setSkillLevel, language, setLanguage, messages, setMessages } = usePreferences();
   const [input, setInput] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
+  console.log(messages)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        console.log('Trying to fetch')
+        const response = await fetch("/api/chat");
+        if (!response.ok) {
+          throw new Error("Network response not ok");
+        }
+        const data: chatHistory = await response.json();
+        if (Object.keys(data).length === 0) {
+          return;
+        } else {
+          const { language, skillLevel, history } = data;
+          console.log(history)
+          setSkillLevel(skillLevel);
+          setLanguage(language);
+          setMessages(history);
+          return;
+        }
+      } catch (err) {
+        console.error('error loading messages')
+        //throw new Error( 'Network connection failed')
+      }
+    };
+    fetchData();
+    console.log(messages)
+  }, []);
 
   const handleSubmit = async () => {
     const userMessage = {
@@ -20,19 +50,26 @@ const ChatBox = (): React.JSX.Element => {
 
     try {
       // adds user message directly
+      const request = {
+        language: language,
+        skillLevel: skillLevel,
+        prompt: input
+      }
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(input),
+        body: JSON.stringify(request),
       });
-      if (!response.ok) throw new Error('Message Failed');
-      const data = await response.json();
-      setMessages(prevMessages => [...prevMessages, ...data]);
+      if (!response.ok) throw new Error(await response.json());
+      const data: chatHistoryJSON = await response.json();
+      setMessages(prevMessages => [...prevMessages, data]);
       // inputRef.current?.focus();
       return;
-    } catch (err) {}
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleInputKeyDown = (e: React.KeyboardEvent) => {
@@ -49,6 +86,7 @@ const ChatBox = (): React.JSX.Element => {
       </div>
       <div className='chatBox-messages'>
         {messages.map((message, index) => (
+          
           <div className={`message`} key={index}>
             {message.content}
           </div>
