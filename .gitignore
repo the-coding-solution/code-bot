@@ -3,3 +3,4 @@ package-lock.json
 backend/history/*
 .DS_Store
 .env
+models/

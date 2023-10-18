@@ -12,3 +12,19 @@ export interface chatHistory{
     initialPrompt?: string
     history: {[key: string]: string}[]
 }
+
+export interface chatHistoryJSON{
+    type: string;
+    content: string;
+}
+
+export interface chatMemory{
+    input: {
+        programming_language: string;
+        user_level: string;
+        text: string;
+    }
+    output: {
+        output: string;
+    }
+}
