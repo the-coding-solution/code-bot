@@ -10,7 +10,7 @@ export interface chatHistory{
     language: string
     skillLevel: string
     initialPrompt?: string
-    history: {[key: string]: string}[]
+    history: chatHistoryJSON[]
 }
 
 export interface chatHistoryJSON{

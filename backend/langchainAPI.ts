@@ -85,10 +85,16 @@ export class Bot{
     private memory;
     private chain;
     private history;
+    private programming_language;
+    private experience;
+    private id;
 
-    constructor(key: string){
+    constructor(programming_language: string, experience: string, id: string){
+        this.id = id;
+        this.programming_language = programming_language;
+        this.experience = experience;
         this.model = new ChatOpenAI({
-            openAIApiKey: key
+            openAIApiKey: process.env.API_KEY
         });
         this.template = ChatPromptTemplate.fromMessages([
                 ["system", TEMPLATE],
@@ -128,7 +134,7 @@ export class Bot{
     async loadMemoryFromHistory(filePath: string){
         return new Promise<Bot>(async (resolve, reject)=>{
             try {
-                const content: chatMemory[] = JSON.parse(await readAsync(filePath, 'utf-8'));
+                const content: chatMemory[] = JSON.parse(await readAsync(path.join(__dirname, filePath), 'utf-8'));
                 this.history = content;
                 content.forEach(element=>{
                     this.memory.saveContext(element.input, element.output);
@@ -141,10 +147,10 @@ export class Bot{
        
     }
 
-    async callAI(programming_language: string, user_level: string, input: string){
-       return new Promise<Bot>(async (resolve, reject)=> {
+    async callAI(input: string){
+       return new Promise<String>(async (resolve, reject)=> {
         try {
-            const inputs = {programming_language, user_level, text: input};
+            const inputs = {programming_language: this.programming_language, user_level: this.experience, text: input};
             const response = await this.chain.invoke(inputs);
             console.log(response);
             // Save context
@@ -156,7 +162,7 @@ export class Bot{
             await this.memory.saveContext(inputs, {
                 output: response
             }) 
-            resolve(this);
+            resolve(response.content);
         } catch (error) {
             reject(error);
         }
@@ -168,7 +174,7 @@ export class Bot{
         return new Promise<Bot>(async (resolve, reject)=> {
             try {
                 const dataToWrite = JSON.stringify(this.history);
-                await writeAsync(filePath, dataToWrite, 'utf-8');
+                await writeAsync(path.join(__dirname, filePath), dataToWrite, 'utf-8');
                 resolve(this);
             } catch (error) {
                 reject(error)
@@ -230,18 +236,18 @@ if (process.env.API_KEY){
 
     
 }
-async function test2(){
-    if (!process.env.API_KEY){
-        const bot = await new Bot('test');
-        //await bot.callAI('javascript', 'beginner', 'show me how to write a function named \'HelloWorld\' that prints hello world when invoked')
-        await bot.loadMemoryFromHistory(path.join(__dirname, './history/652fdb825ca966b8e8032678.json'));
-        // await bot.callAI('javascript', 'beginner', 'What was the name of the function I just asked about?');
-        await bot.writeHistoryToFile(path.join(__dirname, './history/test.json'));
-    }
+// async function test2(){
+//     if (!process.env.API_KEY){
+//         const bot = await new Bot('test');
+//         //await bot.callAI('javascript', 'beginner', 'show me how to write a function named \'HelloWorld\' that prints hello world when invoked')
+//         await bot.loadMemoryFromHistory(path.join(__dirname, './history/652fdb825ca966b8e8032678.json'));
+//         // await bot.callAI('javascript', 'beginner', 'What was the name of the function I just asked about?');
+//         await bot.writeHistoryToFile(path.join(__dirname, './history/test.json'));
+//     }
 
-}
+// }
 
-test2()
+//test2()
 /** 
 [
     {

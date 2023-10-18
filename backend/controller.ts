@@ -1,5 +1,5 @@
 import {Request, Response, NextFunction} from 'express';
-import { serverError, chatHistory } from '../types';
+import { serverError, chatHistory, chatMemory, chatHistoryJSON } from '../types';
 import  { Data }  from './model';
 import fs from 'fs';
 import util from 'util';
@@ -7,6 +7,7 @@ import { exec } from 'child_process'
 const readAsync = util.promisify(fs.readFile);
 const execAsync = util.promisify(exec);
 import path from 'path';
+import { Bot } from './langchainAPI';
 interface ILCController{
     // checkSetCookie: (req: Request, res: Response, next: NextFunction) => Promise<void>
     getAllChatHistory: (req: Request, res: Response, next: NextFunction) => Promise<void>;
@@ -16,6 +17,22 @@ interface ILCController{
 
 
 const LCController: ILCController = {} as ILCController;
+
+function parseHistoryToJSON(history: chatMemory[]): chatHistoryJSON[]{
+    const output: chatHistoryJSON[] = [];
+    history.forEach(element=>{
+        output.push({
+            type: 'human',
+            content: element.input.text
+        })
+        output.push({
+            type: 'ai',
+            content: element.output.output
+        })
+    })
+    return output
+}
+
 
 LCController.getAllChatHistory = async(req: Request, res: Response, next: NextFunction): Promise<void> =>{
     try {
@@ -31,7 +48,7 @@ LCController.getAllChatHistory = async(req: Request, res: Response, next: NextFu
         const data: chatHistory = {
             language: info.language,
             skillLevel: info.skillLevel,
-            history: history
+            history: parseHistoryToJSON(history)
         }
         res.locals.chat = data;
         return next();
@@ -53,56 +70,72 @@ function quickProcess(str: string): string{
     return arr[arr.length-1];
 }
 
+function checkCache(session_id: string, cache: {[key: string]: Bot}): Bot | undefined {
+    if (`key_${session_id}` in cache){
+        const model = cache[`key_${session_id}`];
+        console.log(`key_${session_id}`);
+        return model;
+    } 
+}
+
 
 // @ts-ignore
 LCController.promptAiWrapped = () => {
 
-    const cache: any = {};
+    const cache: {[key: string]: Bot} = {};
 
 
     return async function(req: Request, res: Response, next: NextFunction): Promise<void>{
         try {
-            const { session } = req.cookies;
+            let session = req.cookies.session;
             let language, skillLevel, prompt;
-            let history = [];
             prompt = req.body.prompt;
+            let bot;
             if (prompt===undefined){
+                console.log('No Prompt found...')
                 return next({message: {err: 'Missing prompt'}, statusCode: 400});
             }
-            if (session!=undefined){
-                // First check cache
-                if (`key_${session}` in cache){
-                    const model = cache[`key_${session}`];
-                    console.log(`key_${session}`);
-                    
-                }
-                const result = await Data.findOne({_id: session});
-                if (result){
-                    language = result.language;
-                    skillLevel = result.skillLevel;
-                    history = JSON.parse(await readAsync(path.join(__dirname, result.path_to_history), 'utf-8'));
-                } else {
-                    // Error getting session data
-                    return next({message: {err: 'Error getting session data', statusCode: 500, log: `LCController.promptAi: Could get session ${session}`}})
-                }
-            } else {
-                // Theres not a session so set a new cookie and create file
+            if (session===undefined){
                 skillLevel = req.body.skillLevel;
-                language = req.body.language;
+                language = req.body.skillLevel;
                 if (skillLevel===undefined || language===undefined){
                     return next({message: {err: 'Missing data for skill level and language'}, statusCode: 400});
                 }
                 const newEntry = await Data.create({language, skillLevel})//Data(language, skillLevel)
+                console.log('Creating cookie...');
+                session = newEntry._id.toString();
                 res.cookie('session', newEntry._id);
-                
-                cache[`key_${newEntry._id}`] = 1;
+                bot = new Bot(language, skillLevel, newEntry._id.toString());
             }
-            console.log(`AI Prompt: ${language}, ${skillLevel}, ${history}, ${prompt}`); // query AI here
-            const { stdout, stderr } = await execAsync(`${path.join(__dirname, './work_around.sh')} ${prompt}`);
+            if (session!=undefined){
+                // First check cache
+                console.log('Checking cache...')
+                bot = checkCache(session, cache);
+            }
+
+            const result = await Data.findOne({_id: session});
+            if (!result){
+                return next({message: {err: 'Error getting session data', statusCode: 500, log: `LCController.promptAi: Could get session ${session}`}})
+            }
+
+            if (!bot){
+                // Load bot from history;
+                console.log('No Bot in cache, creating from memory...')
+                bot = new Bot(result.language, result.skillLevel, session);
+                console.log('Created bot')
+                bot.loadMemoryFromHistory(result.path_to_history);
+            }
+
+            // Actually call bot here
+            const aiMessage = await bot.callAI(prompt);
+            await bot.writeHistoryToFile(result.path_to_history);
+            console.log('Message:', aiMessage);
+
             res.locals.response = {
                 type: 'ai',
-                content: quickProcess(stdout),
-            };
+                content: aiMessage
+            }
+              
             return next();
         } catch (error) {
             const errObj: serverError = {
